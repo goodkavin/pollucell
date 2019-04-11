@@ -18,6 +18,7 @@ colors = {
         'text': '#7FDBFF'
 }
 
+# Load data
 df = pd.read_csv('~/Documents/GitHub/pollucell/sampledata/rsl_pm25.csv') #local path
 print(df)
 
@@ -33,6 +34,7 @@ print(mydb)
 df2 = pd.read_sql('SELECT * FROM TestTable', con=mydb)
 print(df2)
 
+# Create app layout
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     html.H1(children='PolluSmartCell Dashboard'),
 
