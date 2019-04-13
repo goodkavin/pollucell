@@ -11,20 +11,13 @@ import mysql.connector
 
 from components import make_dash_table
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__)
 
 server = app.server
 
-colors = {
-        'background': '#FFFFFF',
-        'text': '#7FDBFF'
-}
-
 # Load data
 df = pd.read_csv('../sampledata/rsl_pm25.csv') #relative path - need to execute app inside /dashboard
-print(df)
+#print(df)
 
 mydb = mysql.connector.connect(
   host="mysql.cdcmjtosctu0.us-east-2.rds.amazonaws.com",
@@ -33,18 +26,27 @@ mydb = mysql.connector.connect(
   database="pollucell"
 )
 
-print(mydb)
+#print(mydb)
 
 df2 = pd.read_sql('SELECT * FROM TestTable', con=mydb)
-print(df2)
+#print(df2)
 
 # Create app layout
-app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
-    html.H1(children='PolluSmartCell Dashboard'),
+app.layout = html.Div(className="container", children=[
+    html.Div(
+        className="app-header",
+        children=[
+            html.H1('PolluSmartCell Dashboard')
+        ]
+    ),
 
-    html.Div(children='''
-        PolluSmartCell: Using Wireless Communication To Detect Polluted Atmospheric Condition
-    '''),
+    html.Div(
+        children=
+        html.H5('''
+        Using Wireless Communication To Detect 
+        Polluted Atmospheric Condition
+        ''')
+    ),
 
     dcc.Graph(
         id='example-graph',
@@ -68,8 +70,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
             )
         }
     ),
-    html.Div([
-        html.H2('MySQL: TestTable')
+    html.Div(children=[
+        html.H3('MySQL: TestTable')
     ]),
 
     html.Div([
