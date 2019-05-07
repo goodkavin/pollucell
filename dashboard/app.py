@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.graph_objs as go
 import mysql.connector
+import configparser
 
 from components import make_dash_table
 
@@ -20,10 +21,13 @@ server = app.server
 df = pd.read_csv('../sampledata/rsl_pm25.csv') #relative path - need to execute app inside /dashboard
 #print(df)
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 mydb = mysql.connector.connect(
-  host="mysql.cdcmjtosctu0.us-east-2.rds.amazonaws.com",
-  user="mm",
-  passwd="connect2019",
+  host=config['DATABASE']['HOST'],
+  user=config['DATABASE']['USER'],
+  passwd=config['DATABASE']['PASSWORD'],
   database="pollucell"
 )
 
@@ -56,6 +60,7 @@ app.layout = html.Div(className="container", children=[
                  options=[
                      {'label': i, 'value': i} for i in files
                  ],
+                 value=files[0]
     ),
 
     dcc.Graph(id='temperature-graph'),
