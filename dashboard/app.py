@@ -69,7 +69,7 @@ app.layout = html.Div(className="container", children=[
 
     dcc.Graph(id='overview-graph'),
 
-    html.Div(id='metadata', children=[
+    html.Table(id='metadata', children=[
         html.Tr([html.Td(['Name']), html.Td(id='meta-name')]),
         html.Tr([html.Td(['Date']), html.Td(id='meta-date')]),
         html.Tr([html.Td(['Time']), html.Td(id='meta-time')]),
@@ -94,6 +94,13 @@ app.layout = html.Div(className="container", children=[
     ),
 
     dcc.Graph(id='pm-graph'),
+
+    html.Table(children=[
+        html.Tr([html.Td(['Station Name']), html.Td(id='pm-name')]),
+        html.Tr([html.Td(['Station ID']), html.Td(id='pm-id')]),
+        html.Tr([html.Td(['Latitude']), html.Td(id='pm-lat')]),
+        html.Tr([html.Td(['Longitude']), html.Td(id='pm-long')]),
+        ]),
 
     dcc.Graph(
         id='example-graph',
@@ -333,6 +340,19 @@ def update_pm(input_pm, input_value):
 
     fig={'data': data2, 'layout': layout}
     return fig
+
+@app.callback(
+        [Output('pm-name', 'children'),
+        Output('pm-id', 'children'),
+        Output('pm-lat', 'children'),
+        Output('pm-long', 'children')],
+        [Input(component_id='filename', component_property='value')])
+def update_pm_meta(input_value):
+    name = "โรงพยาบาลจุฬาลงกรณ์"
+    sid = '50t'
+    slat = '13.731576', 
+    slong = '100.534390'
+    return name, sid, slat, slong
 
 if __name__ == '__main__':
     app.run_server(debug=True)
