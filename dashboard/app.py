@@ -48,15 +48,14 @@ app.layout = html.Div(className="container", children=[
     html.Div(
         className="app-header",
         children=[
-            html.H1('PolluSmartCell Dashboard')
+            html.H1('Temperature Inversion Dashboard')
         ]
     ),
 
     html.Div(
         children=
         html.H5('''
-        Using Wireless Communication To Detect
-        Polluted Atmospheric Condition
+        Temperature Inversion Measurements From Tethered Balloon 
         ''')
     ),
 
@@ -64,7 +63,14 @@ app.layout = html.Div(className="container", children=[
                  options=[
                      {'label': i, 'value': i} for i in files
                  ],
-                 value=files[0]
+                 value=files[0],
+    ),
+
+    html.Div(
+        children=
+        html.H3('''
+        Overview
+        ''')
     ),
 
     dcc.Graph(id='overview-graph'),
@@ -75,11 +81,30 @@ app.layout = html.Div(className="container", children=[
         html.Tr([html.Td(['Time']), html.Td(id='meta-time')]),
         html.Tr([html.Td(['Latitude']), html.Td(id='meta-lat')]),
         html.Tr([html.Td(['Longitude']), html.Td(id='meta-long')]),
-    ]),
+    ],
+    style={'margin-left':'auto',
+           'margin-right':'auto'}),
+
+    html.Div(
+        children=
+        html.H3('''
+        Temperature Inversion
+        ''')
+    ),
 
     dcc.Graph(id='tinv-graph'),
 
-    html.Div(id='tinv-prediction'),
+    html.Div(id='tinv-prediction',
+        style={'text-align':'center'}),
+
+    html.Div(
+        children=
+        html.H3('''
+        Pollution Comparison
+        ''')
+    ),
+
+    dcc.Graph(id='pm-graph'),
 
     dcc.Dropdown(id='pm',
         options=[
@@ -93,73 +118,14 @@ app.layout = html.Div(className="container", children=[
         value='PM25'
     ),
 
-    dcc.Graph(id='pm-graph'),
-
     html.Table(children=[
         html.Tr([html.Td(['Station Name']), html.Td(id='pm-name')]),
         html.Tr([html.Td(['Station ID']), html.Td(id='pm-id')]),
         html.Tr([html.Td(['Latitude']), html.Td(id='pm-lat')]),
         html.Tr([html.Td(['Longitude']), html.Td(id='pm-long')]),
-        ]),
-
-    dcc.Graph(
-        id='example-graph',
-        figure={
-            'data': [
-                go.Scatter(
-                    x=df['dateTime'],
-                    y=df['Signal_strength'],
-                    name='Signal strength'
-                ),
-                go.Scatter(
-                    x=df['dateTime'],
-                    y=df['value'],
-                    name='PM2.5'
-                )
-           ],
-            'layout': go.Layout(
-                title='Signal strength vs PM2.5',
-                xaxis={'title': 'Date and time'},
-                yaxis={'title': 'Value'}
-            )
-        }
-    ),
-    html.Div(children=[
-        html.H3('MySQL: TestTable')
-    ]),
-
-    html.Div([
-        dash_table.DataTable(
-        id='test-table',
-        columns=[{"name": i, "id": i} for i in df.columns],
-        data=df.to_dict("rows"),
-        )
-    ]),
-
-    dcc.Graph(
-        id='example-graph-2',
-        figure={
-            'data': [
-                go.Scatter(
-                    x=df2['Column1'],
-                    y=df2['Column2'],
-                    name='x = Column1'
-                ),
-                go.Scatter(
-                    x=df2['Column2'],
-                    y=df2['Column1'],
-                    name='x = Column2'
-                )
-
-            ],
-            'layout': go.Layout(
-                title='Graph From TestTable',
-                xaxis={'title': 'x'},
-                yaxis={'title': 'y'}
-            )
-        }
-    )
-
+        ],
+        style={'margin-left':'auto',
+               'margin-right':'auto'}),
 ])
 
 @app.callback(
