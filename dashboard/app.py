@@ -21,10 +21,6 @@ app = dash.Dash(__name__)
 
 server = app.server
 
-# Load data
-df = pd.read_csv('../sampledata/rsl_pm25.csv') #relative path - need to execute app inside /dashboard
-#print(df)
-
 config = configparser.ConfigParser()
 config.read('config.ini')
 
@@ -34,11 +30,6 @@ mydb = mysql.connector.connect(
   passwd=config['DATABASE']['PASSWORD'],
   database="pollucell"
 )
-
-#print(mydb)
-
-df2 = pd.read_sql('SELECT * FROM TestTable', con=mydb)
-#print(df2)
 
 pathway = '../data/balloon/'
 files = [f for f in os.listdir(pathway) if isfile(join(pathway, f))]
@@ -138,12 +129,12 @@ def update_overview(input_value):
     trace1 = go.Scatter(
               x= df['datetime'],
               y= df['temp'],
-              name= 'Temperature'
+              name= 'Temperature (°C)'
              )
     trace2 = go.Scatter(
               x= df['datetime'],
               y= df['alt'],
-              name= 'Altitude'
+              name= 'Altitude (m)'
              )
 
     data = [trace1, trace2]
@@ -151,8 +142,8 @@ def update_overview(input_value):
     fig = {
             'data': data,
             'layout': {
-                      'xaxis': {'title': 'datetime'},
-                      'yaxis': {'title': "value"}
+                      'xaxis': {'title': 'Time'},
+                      'yaxis': {'title': "Value"}
                       }
           }
     return fig
@@ -168,14 +159,10 @@ def update_overview(input_value):
 def update_metadata(input_value):
     file = '../data/balloon/{}'.format(input_value)
     df = pd.read_csv(file, sep=',')
-    name = "Chula balloon"
+    name = "Balloon Launch at Main Grass Field CU"
     df['datetime'] =  pd.to_datetime(df['datetime'])
     time = df['datetime'].min().strftime("%H:%M:%S")+" - "+df['datetime'].max().strftime("%H:%M:%S")
     date = df['datetime'].min().strftime("%d/%m/%y")
-    bins = np.arange(0,df['alt'].max() + 1, 1)
-    df['bins'] = pd.cut(df['alt'], bins, labels=False)
-    df = df.groupby('bins').mean()
-    iroc = -df['temp'].diff(periods=5) / df['alt'].diff(periods=5)
     clat = 13.738548
     clong = 100.530846
 
@@ -205,8 +192,8 @@ def update_tinv(input_value):
     fig = {
            'data': data,
            'layout': {
-                     'xaxis': {'title': 'alt'},
-                     'yaxis': {'title': 'temp'},
+                     'xaxis': {'title': 'Altitude (m)'},
+                     'yaxis': {'title': 'Temperature (°C)'},
                      'shapes': [
                                # highlight during uav flight
                                {
