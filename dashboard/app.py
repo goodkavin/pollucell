@@ -277,25 +277,12 @@ def update_metadata(input_value):
    [Input(component_id='pm', component_property='value'),
     Input(component_id='filename', component_property='value')])
 def update_pm(input_pm, input_value):
-    file = '../data/{}'.format(input_value)
-    with open(file,'r') as f:
-        targets_1 = [line for line in f if "mavlink_scaled_pressure_t" in line]
-
-    df_1 = pd.DataFrame(targets_1, columns=["c"])
-    df_1_2 = pd.DataFrame(df_1.c.str.split(',').tolist(),
-                                   columns = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'
-                                             ,'c11','c12','c13','c14','c15','c16','c17','c18','c19','c20'
-                                             ,'c21','c22'])
-    df_1_3 = df_1_2.filter(['c1','c14','c16','c18'], axis=1)
-    df_1_4 = df_1_3.rename(index=str, columns={"c1": "datetime", "c14": "press_abs", "c16": "press_diff", "c18": "temperature"})
-    df_1_4['datetime']= df_1_4['datetime'].astype('datetime64')
-    df_1_4['press_abs']= df_1_4['press_abs'].astype('float')
-    df_1_4['press_diff']= df_1_4['press_diff'].astype('float')
-    df_1_4['temperature']= df_1_4['temperature'].astype('float')
-
-    uav_start = df_1_4.datetime.min()
-    uav_end = df_1_4.datetime.max()
-    uav_date = df_1_4.datetime[0]
+    file = '../data/balloon/{}'.format(input_value)
+    df = pd.read_csv(file)
+    df['datetime'] =  pd.to_datetime(df['datetime'])
+    uav_start = df.datetime.min()
+    uav_end = df.datetime.max()
+    uav_date = df.datetime[0]
     sdate = uav_date + pd.DateOffset(days=-1)
     sdate = sdate.strftime('%y-%m-%d')
     edate = uav_date + pd.DateOffset(days=1)
@@ -336,7 +323,7 @@ def update_pm(input_pm, input_value):
                 'y0': 0,
                 'x1': uav_end,
                 'y1': 1,
-                'fillcolor': 'rgba(50, 171, 96, 0.6)',
+                'fillcolor': 'rgba(10, 171, 46, 0.8)',
                 'line': {
                     'width': 0,
                 }
