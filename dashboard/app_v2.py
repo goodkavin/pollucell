@@ -13,7 +13,6 @@ import configparser
 import objectpath
 import json
 import requests
-import numpy as np
 
 from components import make_dash_table
 
@@ -40,7 +39,7 @@ mydb = mysql.connector.connect(
 df2 = pd.read_sql('SELECT * FROM TestTable', con=mydb)
 #print(df2)
 
-pathway = '../data/balloon/'
+pathway = '../data/'
 files = [f for f in os.listdir(pathway) if isfile(join(pathway, f))]
 
 # Create app layout
@@ -67,19 +66,7 @@ app.layout = html.Div(className="container", children=[
                  value=files[0]
     ),
 
-    dcc.Graph(id='overview-graph'),
-
-    html.Div(id='metadata', children=[
-        html.Tr([html.Td(['Name']), html.Td(id='meta-name')]),
-        html.Tr([html.Td(['Date']), html.Td(id='meta-date')]),
-        html.Tr([html.Td(['Time']), html.Td(id='meta-time')]),
-        html.Tr([html.Td(['Latitude']), html.Td(id='meta-lat')]),
-        html.Tr([html.Td(['Longitude']), html.Td(id='meta-long')]),
-    ]),
-
-    dcc.Graph(id='tinv-graph'),
-
-    html.Div(id='tinv-prediction'),
+    dcc.Graph(id='temperature-graph'),
 
     dcc.Dropdown(id='pm',
         options=[
@@ -124,8 +111,8 @@ app.layout = html.Div(className="container", children=[
     html.Div([
         dash_table.DataTable(
         id='test-table',
-        columns=[{"name": i, "id": i} for i in df.columns],
-        data=df.to_dict("rows"),
+        columns=[{"name": i, "id": i} for i in df2.columns],
+        data=df2.to_dict("rows"),
         )
     ]),
 
@@ -156,121 +143,39 @@ app.layout = html.Div(className="container", children=[
 ])
 
 @app.callback(
-    Output(component_id='overview-graph', component_property='figure'),
+    Output(component_id='temperature-graph', component_property='figure'),
     [Input(component_id='filename', component_property='value')]
 )
-def update_overview(input_value):
-    file = '../data/balloon/{}'.format(input_value)
-    df = pd.read_csv(file, sep=",")
-    trace1 = go.Scatter(
-              x= df['datetime'],
-              y= df['temp'],
-              name= 'Temperature'
-             )
-    trace2 = go.Scatter(
-              x= df['datetime'],
-              y= df['alt'],
-              name= 'Altitude'
-             )
+def update_figure(input_value):
+    file = '../data/{}'.format(input_value)
+    with open(file,'r') as f:
+        targets_1 = [line for line in f if "mavlink_scaled_pressure_t" in line]
 
-    data = [trace1, trace2]
+    df_1 = pd.DataFrame(targets_1, columns=["c"])
+    df_1_2 = pd.DataFrame(df_1.c.str.split(',').tolist(),
+                                   columns = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'
+                                             ,'c11','c12','c13','c14','c15','c16','c17','c18','c19','c20'
+                                             ,'c21','c22'])
+    df_1_3 = df_1_2.filter(['c1','c14','c16','c18'], axis=1)
+    df_1_4 = df_1_3.rename(index=str, columns={"c1": "datetime", "c14": "press_abs", "c16": "press_diff", "c18": "temperature"})
+    df_1_4['datetime']= df_1_4['datetime'].astype('datetime64')
+    df_1_4['press_abs']= df_1_4['press_abs'].astype('float')
+    df_1_4['press_diff']= df_1_4['press_diff'].astype('float')
+    df_1_4['temperature']= df_1_4['temperature'].astype('float')
 
     fig = {
-            'data': data,
+        'data': [
+            {'x': df_1_4['datetime'],
+            'y': df_1_4['temperature'],
+            'name': 'Temperature'
+            }],
             'layout': {
-                      'xaxis': {'title': 'datetime'},
-                      'yaxis': {'title': "value"}
-                      }
-          }
+                'xaxis': {'title': 'datetime'},
+                'yaxis': {'title': "value"}
+            }
+        }
+
     return fig
-
-@app.callback(
-    [Output('meta-name', 'children'),
-     Output('meta-date', 'children'),
-     Output('meta-time', 'children'),
-     Output('meta-lat', 'children'),
-     Output('meta-long', 'children')],
-    [Input(component_id='filename', component_property='value')]
-)
-def update_metadata(input_value):
-    file = '../data/balloon/{}'.format(input_value)
-    df = pd.read_csv(file, sep=',')
-    name = "Chula balloon"
-    df['datetime'] =  pd.to_datetime(df['datetime'])
-    time = df['datetime'].min().strftime("%H:%M:%S")+" - "+df['datetime'].max().strftime("%H:%M:%S")
-    date = df['datetime'].min().strftime("%d/%m/%y")
-    bins = np.arange(0,df['alt'].max() + 1, 1)
-    df['bins'] = pd.cut(df['alt'], bins, labels=False)
-    df = df.groupby('bins').mean()
-    iroc = -df['temp'].diff(periods=5) / df['alt'].diff(periods=5)
-    clat = 13.738548
-    clong = 100.530846
-
-    return name, date, time, clat, clong 
-
-@app.callback(
-    Output(component_id='tinv-graph', component_property='figure'),
-    [Input(component_id='filename', component_property='value')]
-)
-def update_tinv(input_value):
-    file = '../data/balloon/{}'.format(input_value)
-    df = pd.read_csv(file, sep=",")
-    bins = np.arange(0,df['alt'].max() + 1, 1)
-    df['bins'] = pd.cut(df['alt'], bins, labels=False)
-    df = df.groupby('bins').mean()
-    iroc = -df['temp'].diff(periods=5) / df['alt'].diff(periods=5)
-    tinv_start = iroc.idxmin()-5
-    tinv_end = iroc.idxmin()+5
-    trace1 = go.Scatter(
-              x= df.index,
-              y= df['temp'],
-              name= 'tinv'
-             )
-
-    data = [trace1]
-
-    fig = {
-           'data': data,
-           'layout': {
-                     'xaxis': {'title': 'alt'},
-                     'yaxis': {'title': 'temp'},
-                     'shapes': [
-                               # highlight during uav flight
-                               {
-                                     'type': 'rect',
-                                     # x-reference is assigned to the x-values
-                                     'xref': 'x',
-                                     # y-reference is assigned to the plot paper [0,1]
-                                     'yref': 'paper',
-                                     'x0': tinv_start,
-                                     'y0': 0,
-                                     'x1': tinv_end,
-                                     'y1': 1,
-                                     'fillcolor': 'rgba(255, 131, 16, 0.2)',
-                                     'line': {
-                                         'width': 0,
-                                     }
-                               }
-                               ]
-                       },
-           }
-    return fig
-
-@app.callback(
-    Output('tinv-prediction', 'children'),
-    [Input(component_id='filename', component_property='value')]
-)
-def update_metadata(input_value):
-    file = '../data/balloon/{}'.format(input_value)
-    df = pd.read_csv(file, sep=',')
-    df['datetime'] =  pd.to_datetime(df['datetime'])
-    bins = np.arange(0,df['alt'].max() + 1, 1)
-    df['bins'] = pd.cut(df['alt'], bins, labels=False)
-    df = df.groupby('bins').mean()
-    iroc = -df['temp'].diff(periods=5) / df['alt'].diff(periods=5)
-    tinv_alt = iroc.idxmin()
-
-    return "Suspect TINV layer around "+str(tinv_alt)+" meters"
 
 @app.callback(
    Output(component_id='pm-graph', component_property='figure'),
