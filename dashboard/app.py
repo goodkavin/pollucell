@@ -2,6 +2,7 @@ import os
 from os.path import isfile, join
 
 import dash
+import dash_auth
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
@@ -18,6 +19,16 @@ import numpy as np
 from components import make_dash_table
 
 app = dash.Dash(__name__)
+
+# In production, keep this out of source code repository - save in a file or a database
+VALID_USERNAME_PASSWORD_PAIRS = [
+    ['tinv', '7A483g']
+]
+
+auth = dash_auth.BasicAuth(
+    app,
+    VALID_USERNAME_PASSWORD_PAIRS
+)
 
 server = app.server
 
