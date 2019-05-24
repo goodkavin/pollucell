@@ -191,8 +191,12 @@ def update_tinv(input_value):
     df['bins'] = pd.cut(df['alt'], bins, labels=False)
     df = df.groupby('bins').mean()
     iroc = -df['temp'].diff(periods=5) / df['alt'].diff(periods=5)
-    tinv_start = iroc.idxmin()-5
-    tinv_end = iroc.idxmin()+5
+    if iroc.min()<-0.1:
+        tinv_start = iroc.idxmin()-5
+        tinv_end = iroc.idxmin()+5
+    else:
+        tinv_start = iroc.idxmin() #highlight nothing
+        tinv_end = iroc.idxmin()
     trace1 = go.Scatter(
               x= df.index,
               y= df['temp'],
@@ -207,7 +211,7 @@ def update_tinv(input_value):
                      'xaxis': {'title': 'Altitude (m)'},
                      'yaxis': {'title': 'Temperature (°C)'},
                      'shapes': [
-                               # highlight during uav flight
+                               # highlight tinv
                                {
                                      'type': 'rect',
                                      # x-reference is assigned to the x-values
