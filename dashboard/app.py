@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 from os.path import isfile, join
 
@@ -239,9 +240,12 @@ def update_metadata(input_value):
     df['bins'] = pd.cut(df['alt'], bins, labels=False)
     df = df.groupby('bins').mean()
     iroc = -df['temp'].diff(periods=5) / df['alt'].diff(periods=5)
-    tinv_alt = iroc.idxmin()
+    if iroc.min()<-0.1:
+        tinv_alt = iroc.idxmin()
+        return "Suspect TINV layer around "+str(tinv_alt)+" meters"
+    else:
+        return "No TINV layer found" 
 
-    return "Suspect TINV layer around "+str(tinv_alt)+" meters"
 
 @app.callback(
    Output(component_id='pm-graph', component_property='figure'),
