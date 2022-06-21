@@ -22,7 +22,7 @@ jupyter-core==4.4.0
 MarkupSafe==1.1.1
 mysql-connector==2.2.9
 nbformat==4.4.0
-numpy==1.16.2
+numpy==1.22.0
 objectpath==0.6.1
 pandas==0.24.2
 plotly==3.7.1
